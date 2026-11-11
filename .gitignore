@@ -1,0 +1,21 @@
+# Compiled executable files
+*.exe
+*.out
+
+# Generated K-Means output files
+**/b*.txt
+**/c*.txt
+
+# Object files
+*.o
+*.obj
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary files
+*.tmp
+*.log
+
+**/c*.t
