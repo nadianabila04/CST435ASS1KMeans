@@ -40,14 +40,75 @@ void kmeans_sequential(int N, int K, int* data_points, int** data_point_cluster,
 
     //---------------------------
 
-    //random centroid initialization. centroids are random points
-    //center is the array of centroids containing their locations and cluster number as their index in this array
-    srand(10);
+    // K-Means++ centroid initialization
     Point centr[K];
-    for (int i = 0; i< K; i++){
-        int random = rand()%N;//some random value
-        centr[i] = points[random];
+
+    // Use a fixed seed to make the initialization reproducible
+    mt19937 rng(10);
+
+    // Step 1: Randomly select the first centroid
+    uniform_int_distribution<int> first_dist(0, N - 1);
+    int first_index = first_dist(rng);
+
+    centr[0] = points[first_index];
+
+    // Step 2: Select the remaining K-1 centroids
+    for (int c = 1; c < K; c++) {
+
+        vector<double> min_distances(N);
+        double total_distance = 0.0;
+
+        // Calculate the squared distance to the nearest selected centroid
+        for (int i = 0; i < N; i++) {
+
+            double min_distance = numeric_limits<double>::max();
+
+            for (int j = 0; j < c; j++) {
+
+                double dx = points[i].x - centr[j].x;
+                double dy = points[i].y - centr[j].y;
+                double dz = points[i].z - centr[j].z;
+
+                double distance = dx * dx + dy * dy + dz * dz;
+
+                if (distance < min_distance) {
+                    min_distance = distance;
+                }
+            }
+
+            min_distances[i] = min_distance;
+            total_distance += min_distance;
+        }
+
+        // Step 3: Select the next centroid using weighted probability
+        int selected_index = 0;
+
+        if (total_distance > 0.0) {
+
+            uniform_real_distribution<double> probability(0.0, total_distance);
+            double target = probability(rng);
+
+            double cumulative_distance = 0.0;
+
+            for (int i = 0; i < N; i++) {
+
+                cumulative_distance += min_distances[i];
+
+                if (target < cumulative_distance) {
+                    selected_index = i;
+                    break;
+                }
+            }
+        }
+        else {
+            // Fallback when all points have zero distance
+            uniform_int_distribution<int> random_point(0, N - 1);
+            selected_index = random_point(rng);
+        }
+
+        centr[c] = points[selected_index];
     }
+
 
     //---------------------------
 
